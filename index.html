@@ -4,9 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Apex 1v1v1 Roller - Discord Activity</title>
-<!-- Firebase App (Compat) & Realtime Database -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
 <style>
 :root{
@@ -243,7 +240,7 @@ button.primary:hover:not(:disabled) {
   user-select: none;
 }
 .pname::after {
-  content: "ONLINE";
+  content: "LOCAL";
   font-size: 9px;
   font-weight: 800;
   letter-spacing: .08em;
@@ -367,14 +364,10 @@ button.primary:hover:not(:disabled) {
   color: var(--gold);
 }
 
-.body.spin{opacity:.4;filter:blur(1px)}
-.body.land{animation:land .3s ease-out}
-@keyframes land{0%{opacity:.3}100%{opacity:1}}
-
 .lblrow{display:flex;align-items:center;justify-content:space-between}
 .lim{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mute);cursor:pointer;user-select:none}
 
-/* Discord Leaderboard / Scoreboard Panel */
+/* Leaderboard / Scoreboard Panel */
 .board{
   background: var(--card);
   border: 1px solid var(--card-border);
@@ -454,7 +447,7 @@ h2::before {
 }
 .boardfoot button{flex:1;padding:8px;font-size:12px}
 
-/* Discord Modal Dialog */
+/* Modal Dialog */
 #sheet{
   position: fixed;
   inset: 0;
@@ -614,7 +607,7 @@ body{background:#1e1f22}
     <div class="brand">
       <span class="status-dot"></span>
       <h1>Apex 1v1v1 <span># server-minigame</span></h1>
-      <span class="discord-badge">Discord Activity</span>
+      <span class="discord-badge">Local Mode</span>
     </div>
     <div class="bar">
       <button id="preset">Nika &middot; Sem &middot; Sandro</button>
@@ -667,21 +660,6 @@ body{background:#1e1f22}
 </div>
 
 <script>
-// --- FIREBASE CONFIGURATION ---
-const firebaseConfig = {
-  apiKey: "AIzaSyA8Vj8XDdtBIGVo9sFQYOYrsenAAf9gOOg",
-  authDomain: "v1v1-ceda7.firebaseapp.com",
-  databaseURL: "https://v1v1-ceda7-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "v1v1-ceda7",
-  storageBucket: "v1v1-ceda7.firebasestorage.app",
-  messagingSenderId: "611760550535",
-  appId: "1:611760550535:web:8c236a3f4e2e880069be22",
-  measurementId: "G-HJQ0QEKG35"
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database().ref("game_state");
-
 const LEGENDS=["Alter","Ash","Axle","Ballistic","Bangalore","Bloodhound","Catalyst","Caustic","Conduit","Crypto","Fuse","Gibraltar","Horizon","Lifeline","Loba","Mad Maggie","Mirage","Newcastle","Octane","Pathfinder","Rampart","Revenant","Seer","Sparrow","Valkyrie","Vantage","Wattson","Wraith"];
 const WEAPONS=[
 ["HAVOC Rifle","AR","Energy"],["VK-47 Flatline","AR","Heavy"],["Hemlok","AR","Heavy"],["R-301 Carbine","AR","Light"],["Nemesis","AR","Energy"],
@@ -706,6 +684,7 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",
 const $=id=>document.getElementById(id);
 const grid=$("grid");
 
+// Pure local memory state
 let state = {
   history: [],
   names: PRESET.slice(),
@@ -717,10 +696,6 @@ let state = {
   lk: [0,1,2].map(()=>({legend:false,p:false,s:false,amp:false})),
   players: [0,1,2].map(i=>({i, name: PRESET[i], legend:null, p:null, s:null, amp:null}))
 };
-
-function pushState(){
-  try { db.set(state); } catch(e){ console.error(e); }
-}
 
 const nm=i=>(state.players?.[i]?.name||"").trim()||"Player "+(i+1);
 const KINDS=["legend","p","s","amp"];
@@ -779,27 +754,10 @@ function renderAll(){
   if(!$("picker").hidden&&!editing)renderSeats();
 }
 
-// Initial draw immediately on page load
-renderAll();
-
-// Listen to Firebase updates in real-time
-db.on('value', (snapshot) => {
-  const data = snapshot.val();
-  if(data && data.players && data.players.length === 3){
-    state = data;
-    if(!state.lk) state.lk = [0,1,2].map(()=>({legend:false,p:false,s:false,amp:false}));
-    renderAll();
-  } else {
-    pushState();
-  }
-}, (err) => {
-  console.warn("Firebase Read Error:", err);
-});
-
 function setName(i,v){
   state.players[i].name=v;
   state.names[i]=v;
-  pushState();
+  renderAll();
 }
 
 let editing=false;
@@ -807,7 +765,7 @@ function renderSeats(){
   const box=$("seats");
   if(editing){
     box.innerHTML=`<div class="chips">${state.roster.map(n=>`<button class="chip del" data-d="${esc(n)}">${esc(n)} &times;</button>`).join("")}</div>`;
-    box.querySelectorAll("button").forEach(b=>b.onclick=()=>{state.roster=state.roster.filter(x=>x!==b.dataset.d);pushState();});
+    box.querySelectorAll("button").forEach(b=>b.onclick=()=>{state.roster=state.roster.filter(x=>x!==b.dataset.d);renderSeats();});
   }else{
     box.innerHTML=state.players.map(p=>`<div class="seat"><div class="lbl">Player ${p.i+1}</div><div class="chips">${state.roster.map(n=>`<button class="chip${p.name===n?" on":""}${state.players.some(o=>o.i!==p.i&&o.name===n)?" used":""}" data-i="${p.i}" data-n="${esc(n)}">${esc(n)}</button>`).join("")}</div></div>`).join("");
     box.querySelectorAll("button").forEach(b=>b.onclick=()=>assign(+b.dataset.i,b.dataset.n));
@@ -820,7 +778,7 @@ function assign(i,n){
   if(j>=0) state.players[j].name = state.players[i].name;
   state.players[i].name = n;
   state.names = state.players.map(p=>p.name);
-  pushState();
+  renderAll();
 }
 
 $("pick").onclick=()=>{const h=$("picker").hidden;$("picker").hidden=!h;if(h){editing=false;renderSeats();}};
@@ -833,9 +791,15 @@ function addName(){
   const v=$("newName").value.trim();
   if(!v)return;
   if(!state.roster.some(n=>n.toLowerCase()===v.toLowerCase()))state.roster.push(v);
-  $("newName").value="";pushState();
+  $("newName").value="";
+  renderSeats();
 }
-$("preset").onclick=()=>{PRESET.forEach((n,i)=>state.players[i].name=n);state.names=PRESET.slice();pushState();};
+
+$("preset").onclick=()=>{
+  PRESET.forEach((n,i)=>state.players[i].name=n);
+  state.names=PRESET.slice();
+  renderAll();
+};
 
 function decide(i){
   const p=state.players[i];
@@ -846,7 +810,7 @@ function decide(i){
   p.amp=pick(AMPS);
 }
 
-$("limit").onchange=()=>{state.limit=$("limit").checked;pushState();};
+$("limit").onchange=()=>{state.limit=$("limit").checked; refresh();};
 
 function refresh(){
   state.players.forEach(p=>{
@@ -882,14 +846,12 @@ function rollPlayer(i){
   state.rolled[i]=true;
   decide(i);
   renderAll();
-  pushState();
 }
 
 function lockPlayer(i){
   if(!state.rolled[i]||busy[i]||state.locked[i])return;
   state.locked[i]=true;
   renderAll();
-  pushState();
 }
 
 function spinSlot(i,k){
@@ -908,7 +870,6 @@ function spinSlot(i,k){
   state.lk[i][k]=true;
   state.locked[i]=true;
   renderAll();
-  pushState();
 }
 
 function resetRound(){
@@ -919,7 +880,6 @@ function resetRound(){
   state.players.forEach(p=>{p.legend=null;p.p=null;p.s=null;p.amp=null;});
   hideSheet();
   renderAll();
-  pushState();
 }
 
 /* Result Sheet Logic */
@@ -1074,7 +1034,6 @@ $("undo").onclick=()=>{
   if(!state.history || !state.history.length) return;
   state.history.pop();
   renderAll();
-  pushState();
 };
 
 let armed=false,armT;
@@ -1090,8 +1049,10 @@ $("reset").onclick=()=>{
   $("reset").textContent="Reset";
   state.history=[];
   renderAll();
-  pushState();
 };
+
+// Initial draw on load
+renderAll();
 </script>
 </body>
 </html>
