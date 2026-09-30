@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Apex 1v1v1 Roller - Discord Activity</title>
+<style>
+:root{
+  --bg: #1e1f22;              /* Discord tertiary background */
+  --card: #2b2d31;            /* Discord secondary background */
+  --card-inner: #313338;      /* Discord primary background */
+  --card-border: #3f4147;      /* Discord border / divider */
+  --blurple: #5865F2;         /* Discord signature Blurple */
+  --blurple-hover: #4752C4;
+  --blurple-glow: rgba(88, 101, 242, 0.35);
+  --green: #57F287;           /* Discord Green / Online */
+  --green-bg: #248046;
+  --red: #ED4245;             /* Discord Red */
+  --gold: #FEE75C;            /* Discord Yellow */
+  --ink: #f2f3f5;             /* Primary text */
+  --mute: #949ba4;            /* Muted text */
+  --line: #3f4147;
+  box-sizing: border-box;
+}
+
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+body{
+  background-color: var(--bg);
+  color: var(--ink);
+  font-family: "gg sans", "Noto Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+/* Screen Filling App Layout */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  width: 100%;
+  padding: 16px 22px;
+  box-sizing: border-box;
+}
+
+header{
+  text-align: center;
+  flex-shrink: 0;
+  margin-bottom: 12px;
+  background: var(--card);
+  padding: 12px 20px;
+  border-radius: 12px;
+  border: 1px solid var(--card-border);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.discord-badge {
+  background: var(--blurple);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 4px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  background: var(--green);
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 8px var(--green);
+}
+
+h1{
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: .02em;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink);
+}
+h1 span{ color: var(--mute); font-weight: 500; font-size: 16px; }
+
+/* Control Bar */
+.bar{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+button, select, .txt {
+  font: inherit;
+  cursor: pointer;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: #4e5058;
+  color: #fff;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.15s ease;
+}
+
+button:hover:not(:disabled) {
+  background: #6d6f78;
+}
+
+button.primary {
+  background: var(--blurple);
+  color: #fff;
+}
+button.primary:hover:not(:disabled) {
+  background: var(--blurple-hover);
+  box-shadow: 0 0 12px var(--blurple-glow);
+}
+
+/* Picker Panel */
+.picker{
+  position: absolute;
+  top: 75px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 18px;
+  width: 90%;
+  max-width: 650px;
+  box-shadow: 0 12px 36px rgba(0,0,0,0.6);
+}
+.picker[hidden]{display:none}
+.picker .hint{font-size:12px;color:var(--mute);margin:0 0 12px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.seat{margin-bottom:12px}
+.seat .lbl{margin-bottom:6px}
+.seat .chips{margin-bottom:0}
+.chip.used{opacity:.4}
+.chip.del{border-color:var(--red);color:var(--red);background:transparent}
+.chip{padding:6px 12px;border-radius:16px;font-weight:700;font-size:11px;background:var(--card-inner);border:1px solid var(--card-border)}
+.chip.on{background:var(--blurple);border-color:var(--blurple);color:#fff;box-shadow:0 0 10px var(--blurple-glow)}
+.addrow{display:flex;gap:8px;margin-bottom:10px}
+.txt{flex:1;min-width:0;border:1px solid var(--card-border);border-radius:6px;background:var(--card-inner);color:var(--ink);padding:8px 12px;outline:none}
+.txt:focus{border-color:var(--blurple)}
+.pactions{display:flex;gap:8px}
+.pactions .done{background:var(--blurple);color:#fff;font-weight:700}
+
+/* Symmetrical 3-Column Grid */
+.app-layout {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(820px, 1100px) minmax(260px, 1fr);
+  gap: 18px;
+  align-items: center;
+  min-height: 0;
+  height: 100%;
+}
+
+.left-spacer {
+  height: 100%;
+  pointer-events: none;
+}
+
+.center-area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  min-height: 0;
+}
+
+.grid{
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 16px;
+  width: 100%;
+  max-width: 1100px;
+}
+
+.col{
+  position: relative;
+  overflow: hidden;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  transition: border-color .2s ease, box-shadow .2s ease;
+  border-left: 4px solid var(--blurple);
+}
+.col.stale .body{opacity:.4}
+.col.locked-in{
+  border-color: var(--green);
+  border-left-color: var(--green);
+  box-shadow: 0 0 20px rgba(87, 242, 135, 0.15);
+}
+.col.locked-in .rr{visibility:hidden}
+
+.pname{
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--ink);
+  padding: 2px 0 6px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+}
+.pname::after {
+  content: "ONLINE";
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  background: rgba(87, 242, 135, 0.15);
+  color: var(--green);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.lbl{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--mute)}
+
+.slot{
+  position: relative;
+  padding: 8px 38px 8px 12px;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  background: var(--card-inner);
+  min-height: 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: background .2s, border-color .2s;
+}
+
+.rr{
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  line-height: 1;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--card-border);
+  color: var(--ink);
+  z-index: 3;
+  opacity: 0;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+.slot:hover .rr,
+.rr:focus-visible {
+  opacity: 0.8;
+}
+.rr:hover:not(:disabled) {
+  opacity: 1 !important;
+  background: var(--blurple);
+  border-color: var(--blurple);
+  color: #fff;
+}
+
+.rollp{
+  width: 100%;
+  background: var(--blurple);
+  border: none;
+  color: #fff;
+  font-weight: 800;
+  padding: 10px;
+  letter-spacing: .05em;
+  font-size: 13px;
+  text-transform: uppercase;
+  border-radius: 6px;
+}
+.rollp:hover:not(:disabled){
+  background: var(--blurple-hover);
+  box-shadow: 0 0 14px var(--blurple-glow);
+}
+.rollp:disabled{
+  background: rgba(255,255,255,0.05);
+  color: var(--mute);
+  border: 1px solid var(--line);
+  box-shadow: none;
+  opacity: 0.6;
+}
+
+.lockp{
+  width: 100%;
+  background: var(--card-inner);
+  border: 1px solid var(--card-border);
+  color: var(--ink);
+  font-weight: 700;
+  padding: 8px;
+  letter-spacing: .05em;
+  font-size: 11px;
+  text-transform: uppercase;
+  border-radius: 6px;
+  margin-top: 2px;
+}
+.lockp:hover:not(:disabled){
+  border-color: var(--green);
+  color: var(--green);
+  background: rgba(87, 242, 135, 0.08);
+}
+.lockp.locked-btn{
+  background: rgba(87, 242, 135, 0.15);
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.slot.locked{
+  border-color: var(--blurple);
+  background: linear-gradient(90deg, rgba(88,101,242,0.12) 0%, var(--card-inner) 100%);
+}
+
+.body{min-height:0;transition:color .1s;overflow-wrap:anywhere}
+.val{font-size:15px;font-weight:700;margin-top:2px;line-height:1.2;overflow-wrap:anywhere}
+.legend .val{font-size:16px;color:#fff}
+.col.locked-in .legend .val{color:var(--green)}
+.meta{font-size:11px;color:var(--mute);margin-top:3px;line-height:1.2}
+
+.slot.care-package{
+  background: linear-gradient(90deg, rgba(254, 231, 92, 0.1) 0%, var(--card-inner) 100%);
+  border-color: rgba(254, 231, 92, 0.4);
+}
+.slot.care-package .val{
+  color: var(--gold);
+}
+
+.body.spin{opacity:.4;filter:blur(1px)}
+.body.land{animation:land .3s ease-out}
+@keyframes land{0%{opacity:.3}100%{opacity:1}}
+
+.lblrow{display:flex;align-items:center;justify-content:space-between}
+.lim{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mute);cursor:pointer;user-select:none}
+
+/* Discord Leaderboard / Scoreboard Panel */
+.board{
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-width: 380px;
+  width: 100%;
+  margin-left: auto;
+  min-height: 0;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+h2{
+  font-size: 14px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--mute);
+  margin: 0 0 14px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+h2::before {
+  content: "#";
+  color: var(--blurple);
+  font-weight: 800;
+}
+
+.board-header{
+  display: grid;
+  grid-template-columns: 1fr 50px 60px 50px;
+  gap: 8px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  color: var(--mute);
+  text-transform: uppercase;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+  text-align: center;
+}
+.board-header .pn{text-align:left}
+
+#rows {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.row{
+  display: grid;
+  grid-template-columns: 1fr 50px 60px 50px;
+  gap: 8px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+  text-align: center;
+}
+.row .n{font-weight:700;overflow-wrap:anywhere;letter-spacing:.02em;text-align:left;font-size:14px;color:var(--ink)}
+.row .stat{font-size:13px;color:var(--mute);font-weight:600}
+.row .pts{font-size:20px;font-weight:800;color:var(--ink)}
+
+.row.lead .pts,
+.row.lead .n{color: var(--gold)}
+
+.boardfoot{
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  flex-shrink: 0;
+}
+.boardfoot button{flex:1;padding:8px;font-size:12px}
+
+/* Discord Modal Dialog */
+#sheet{
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 20px;
+}
+#sheet[hidden]{display:none !important}
+#sheet .in{
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 22px 24px;
+  max-width: 760px;
+  width: 100%;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.8);
+  animation: modalFade 0.2s ease-out;
+}
+
+@keyframes modalFade {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+#sheet .t{font-size:18px;font-weight:800;letter-spacing:.02em;margin-bottom:16px;text-align:center;color:#fff}
+
+.sheet-players{
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.p-entry{
+  background: var(--card-inner);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.p-entry .pname-sm{font-weight:800;font-size:13px;color:var(--ink)}
+
+.stat-group{
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ctrl-row{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: var(--card);
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--card-border);
+}
+.ctrl-label{font-size:10px;font-weight:700;color:var(--mute);text-transform:uppercase}
+.ctrl-actions{display:flex;align-items:center;gap:6px}
+
+.kill-btn{
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 4px;
+  background: #4e5058;
+}
+.kill-val{font-weight:800;font-size:13px;min-width:18px;text-align:center}
+
+.match-pts-tag{
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--blurple);
+  text-transform: uppercase;
+  letter-spacing: .02em;
+  margin-top: 2px;
+}
+
+.win-toggle{
+  width: 100%;
+  padding: 8px 4px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  color: var(--mute);
+  margin-top: 4px;
+}
+.win-toggle.active{
+  background: var(--green-bg);
+  border-color: var(--green);
+  color: #fff;
+  box-shadow: 0 0 10px rgba(87, 242, 135, 0.2);
+}
+
+.sheet-actions{
+  display: flex;
+  gap: 10px;
+}
+.sheet-actions .confirm{
+  flex: 2;
+  background: var(--green-bg);
+  border-color: var(--green);
+  color: #fff;
+  font-weight: 800;
+  padding: 10px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+.sheet-actions .confirm:hover{
+  background: #2b9e54;
+}
+.sheet-actions .skip{
+  flex: 1;
+  background: transparent;
+  color: var(--mute);
+  font-size: 12px;
+}
+
+/* Responsive Fallbacks */
+@media (max-width: 1280px){
+  html, body {
+    overflow: auto;
+    height: auto;
+  }
+  .app-container {
+    height: auto;
+    min-height: 100vh;
+  }
+  .app-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+  }
+  .left-spacer {
+    display: none;
+  }
+  .board {
+    max-width: 100%;
+    height: 480px;
+  }
+}
+@media (max-width:680px){
+  .grid{grid-template-columns:1fr}
+  .sheet-players{grid-template-columns:1fr}
+}
+
+/* Background Atmosphere */
+body{background:#1e1f22}
+.bg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;background:radial-gradient(circle at 50% 10%, rgba(88, 101, 242, 0.08), transparent 50%)}
+.app-container{position:relative;z-index:1}
+</style>
+</head>
+<body>
+<div class="bg" aria-hidden="true"></div>
+
+<div class="app-container">
+  <header>
+    <div class="brand">
+      <span class="status-dot"></span>
+      <h1>Apex 1v1v1 <span># server-minigame</span></h1>
+      <span class="discord-badge">Discord Activity</span>
+    </div>
+    <div class="bar">
+      <button id="preset">Nika &middot; Sem &middot; Sandro</button>
+      <button id="pick">Change players</button>
+      <button id="openSheet" class="primary">Log Round Stats</button>
+      <label class="lim"><input type="checkbox" id="limit" checked> 1 reroll limit</label>
+    </div>
+  </header>
+
+  <div class="picker" id="picker" hidden>
+    <p class="hint">Tap a name under each player. Picking a name someone else has swaps the two of you.</p>
+    <div id="seats"></div>
+    <div class="addrow"><input class="txt" id="newName" maxlength="20" placeholder="New server member..."><button id="addName">Add</button></div>
+    <div class="pactions"><button id="editList">Remove names</button><button class="done" id="closePick">Done</button></div>
+  </div>
+
+  <div class="app-layout">
+    <div class="left-spacer"></div>
+
+    <div class="center-area">
+      <div class="grid" id="grid"></div>
+    </div>
+
+    <section class="board">
+      <h2>Server Leaderboard</h2>
+      <div class="board-header">
+        <span class="pn">Player</span>
+        <span>Kills</span>
+        <span>Rounds</span>
+        <span>Score</span>
+      </div>
+      <div id="rows"></div>
+      <div class="boardfoot">
+        <button id="undo">Undo last</button>
+        <button id="reset">Reset</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div id="sheet" hidden role="dialog" aria-label="Round results">
+  <div class="in">
+    <div class="t">Log Match / Game Stats</div>
+    <div class="sheet-players" id="sheetPlayers"></div>
+    <div class="sheet-actions">
+      <button class="confirm" id="confirmRound">Submit &amp; Next Roll</button>
+      <button class="skip" id="skip">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const LEGENDS=["Alter","Ash","Axle","Ballistic","Bangalore","Bloodhound","Catalyst","Caustic","Conduit","Crypto","Fuse","Gibraltar","Horizon","Lifeline","Loba","Mad Maggie","Mirage","Newcastle","Octane","Pathfinder","Rampart","Revenant","Seer","Sparrow","Valkyrie","Vantage","Wattson","Wraith"];
+const WEAPONS=[
+["HAVOC Rifle","AR","Energy"],["VK-47 Flatline","AR","Heavy"],["Hemlok","AR","Heavy"],["R-301 Carbine","AR","Light"],["Nemesis","AR","Energy"],
+["Alternator","SMG","Light"],["Prowler","SMG","Heavy"],["R-99","SMG","Light"],["Volt","SMG","Energy"],["C.A.R.","SMG","Light / Heavy"],
+["Devotion","LMG","Energy"],["M600 Spitfire","LMG","Light"],["Rampage","LMG","Heavy"],["L-STAR","LMG","Energy",true],
+["G7 Scout","Marksman","Light"],["Triple Take","Marksman","Energy"],["30-30 Repeater","Marksman","Heavy",true],["Bocek Compound Bow","Marksman","Arrows"],
+["Charge Rifle","Sniper","Sniper"],["Longbow DMR","Sniper","Sniper"],["Sentinel","Sniper","Sniper"],["Kraber .50-Cal","Sniper","Sniper",true],
+["EVA-8 Auto","Shotgun","Shotgun"],["Mastiff","Shotgun","Shotgun"],["Mozambique","Shotgun","Shotgun"],["Peacekeeper","Shotgun","Shotgun"],
+["RE-45","Pistol","Light"],["P2020","Pistol","Light"],["Wingman","Pistol","Heavy"]
+];
+const MIDFAR=["AR","LMG","Marksman","Sniper"];
+const CLOSE=["SMG","Shotgun","Pistol"];
+const CLOSE_EXTRA=["Devotion","L-STAR"];
+const AMPS=["Overflow Healer","Over Armor","Power Booster"];
+const POOL1=WEAPONS.filter(w=>MIDFAR.includes(w[1]));
+const POOL2=WEAPONS.filter(w=>CLOSE.includes(w[1])||CLOSE_EXTRA.includes(w[0]));
+const NAMES=["Nika","Sem","Sandro","Luka"];
+const PRESET=["Nika","Sem","Sandro"];
+
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const $=id=>document.getElementById(id);
+const grid=$("grid");
+const KEY="apexRoller.v4";
+
+let store={history:[],names:null,roster:null};
+try{const raw=localStorage.getItem(KEY);if(raw){const o=JSON.parse(raw);if(o&&typeof o==="object")store=Object.assign(store,o);}}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(store));}catch(e){}}
+
+if(!Array.isArray(store.roster))store.roster=NAMES.slice();
+const players=[0,1,2].map(i=>({i,name:(store.names&&store.names[i])||PRESET[i]||"Player "+(i+1),legend:null,p:null,s:null,amp:null}));
+const nm=i=>(players[i].name||"").trim()||"Player "+(i+1);
+const KINDS=["legend","p","s","amp"];
+let pending=false;
+const busy=[false,false,false];
+let rolled=[false,false,false], used=[false,false,false], locked=[false,false,false];
+const freshLocks=()=>[0,1,2].map(()=>({legend:false,p:false,s:false,amp:false}));
+let lk=freshLocks();
+
+let roundKills=[0,0,0];
+let roundRounds=[0,0,0];
+let roundWinner=null;
+
+function html(k,v){
+  if(k==="legend"||k==="amp")return `<div class="val">${v}</div>`;
+  const meta = v[1] === v[2] ? v[1] : `${v[1]} &middot; ${v[2]}`;
+  return `<div class="val">${v[0]}</div><div class="meta">${meta}</div>`;
+}
+const el=(i,k)=>grid.querySelector(`.body[data-i="${i}"][data-k="${k}"]`);
+function show(i,k,v,final=false){
+  const body=el(i,k);
+  body.innerHTML=html(k,v);
+  if(final && (k==="p"||k==="s")){
+    const slot=body.closest(".slot");
+    slot.classList.toggle("care-package", !!v?.[3]);
+  }
+}
+
+const L=(t,k,i)=>`<div class="lblrow"><span class="lbl">${t}</span></div><button class="rr" data-i="${i}" data-k="${k}" title="Reroll" aria-label="Reroll">&#8635;</button>`;
+function build(){
+  grid.innerHTML=players.map(p=>`
+  <div class="col">
+    <div class="pname">${esc(p.name)}</div>
+    <button class="rollp" data-p="${p.i}">Roll Loadout</button>
+    <div class="slot legend">${L("Legend","legend",p.i)}<div class="body" data-i="${p.i}" data-k="legend"></div></div>
+    <div class="slot">${L("Weapon 1 &middot; mid/far","p",p.i)}<div class="body" data-i="${p.i}" data-k="p"></div></div>
+    <div class="slot">${L("Weapon 2 &middot; close","s",p.i)}<div class="body" data-i="${p.i}" data-k="s"></div></div>
+    <div class="slot">${L("Amp","amp",p.i)}<div class="body" data-i="${p.i}" data-k="amp"></div></div>
+    <button class="lockp" data-lock="${p.i}">Lock In</button>
+  </div>`).join("");
+  grid.querySelectorAll(".rr").forEach(b=>b.onclick=()=>spinSlot(+b.dataset.i,b.dataset.k));
+  grid.querySelectorAll(".rollp").forEach(b=>b.onclick=()=>rollPlayer(+b.dataset.p));
+  grid.querySelectorAll(".lockp").forEach(b=>b.onclick=()=>lockPlayer(+b.dataset.lock));
+  players.forEach(p=>KINDS.forEach(k=>{el(p.i,k).innerHTML='<div class="val">&mdash;</div>';}));
+}
+
+function setName(i,v){
+  players[i].name=v;
+  const header=grid.querySelectorAll(".pname")[i];
+  if(header)header.textContent=v;
+}
+function namesChanged(){
+  store.names=players.map(p=>p.name);
+  save();
+  build();
+  renderBoard();
+  if(!$("picker").hidden&&!editing)renderSeats();
+}
+
+let editing=false;
+function renderSeats(){
+  const box=$("seats");
+  if(editing){
+    box.innerHTML=`<div class="chips">${store.roster.map(n=>`<button class="chip del" data-d="${esc(n)}">${esc(n)} &times;</button>`).join("")}</div>`;
+    box.querySelectorAll("button").forEach(b=>b.onclick=()=>{store.roster=store.roster.filter(x=>x!==b.dataset.d);save();renderSeats();renderBoard();});
+  }else{
+    box.innerHTML=players.map(p=>`<div class="seat"><div class="lbl">Player ${p.i+1}</div><div class="chips">${store.roster.map(n=>`<button class="chip${p.name===n?" on":""}${players.some(o=>o.i!==p.i&&o.name===n)?" used":""}" data-i="${p.i}" data-n="${esc(n)}">${esc(n)}</button>`).join("")}</div></div>`).join("");
+    box.querySelectorAll("button").forEach(b=>b.onclick=()=>assign(+b.dataset.i,b.dataset.n));
+  }
+  $("editList").textContent=editing?"Back":"Remove names";
+}
+function assign(i,n){
+  const j=players.findIndex(o=>o.i!==i&&o.name===n);
+  if(j>=0)setName(j,players[i].name);
+  setName(i,n);namesChanged();
+}
+$("pick").onclick=()=>{const h=$("picker").hidden;$("picker").hidden=!h;if(h){editing=false;renderSeats();}};
+$("closePick").onclick=()=>{$("picker").hidden=true;};
+$("editList").onclick=()=>{editing=!editing;renderSeats();};
+$("addName").onclick=addName;
+$("newName").onkeydown=e=>{if(e.key==="Enter")addName();};
+function addName(){
+  const v=$("newName").value.trim();
+  if(!v)return;
+  if(!store.roster.some(n=>n.toLowerCase()===v.toLowerCase()))store.roster.push(v);
+  $("newName").value="";save();renderSeats();renderBoard();
+}
+$("preset").onclick=()=>{PRESET.forEach((n,i)=>setName(i,n));namesChanged();};
+
+function decide(i){
+  const p=players[i];
+  const taken=players.filter(o=>o.i!==i&&rolled[o.i]).map(o=>o.legend);
+  p.legend=pick(LEGENDS.filter(l=>!taken.includes(l)));
+  p.p=pick(POOL1);
+  p.s=pick(POOL2.filter(w=>w[0]!==p.p[0]));
+  p.amp=pick(AMPS);
+}
+function candidate(k){
+  return k==="legend"?pick(LEGENDS):k==="p"?pick(POOL1):k==="s"?pick(POOL2):pick(AMPS);
+}
+const limited=()=>$("limit").checked;
+$("limit").checked=store.limit!==false;
+$("limit").onchange=()=>{store.limit=$("limit").checked;save();refresh();};
+
+function checkAllLocked(){
+  if(rolled.every(Boolean) && locked.every(Boolean) && !busy.some(Boolean)){
+    setTimeout(()=>{if(!pending && locked.every(Boolean)) showSheet();}, 500);
+  }
+}
+
+function refresh(){
+  players.forEach(p=>{
+    const i=p.i;
+    const rb=grid.querySelector(`.rollp[data-p="${i}"]`);
+    rb.disabled=rolled[i]||busy[i];
+    rb.textContent=rolled[i]?"Rolled":"Roll Loadout";
+
+    const lb=grid.querySelector(`.lockp[data-lock="${i}"]`);
+    lb.disabled=!rolled[i]||busy[i]||locked[i];
+    lb.textContent=locked[i]?"Locked In":"Lock In";
+    lb.classList.toggle("locked-btn", locked[i]);
+
+    grid.querySelectorAll(`.rr[data-i="${i}"]`).forEach(b=>{
+      const k=b.dataset.k;
+      b.innerHTML="&#8635;";
+      b.disabled=busy[i]||!rolled[i]||lk[i][k]||locked[i]||(limited()&&used[i]);
+    });
+    grid.children[i].classList.toggle("stale",!rolled[i]);
+    grid.children[i].classList.toggle("locked-in",locked[i]);
+  });
+}
+
+function animate(i,keys,base,gap,done){
+  const start=performance.now();
+  const list=keys.map((k,j)=>({k,stop:start+base+j*gap}));
+  list.forEach(s=>{const b=el(i,s.k);b.classList.remove("land");b.classList.add("spin");});
+  const tick=()=>{
+    const now=performance.now();
+    for(let x=list.length-1;x>=0;x--){
+      const s=list[x];
+      if(now>=s.stop){
+        show(i,s.k,players[i][s.k],true);
+        const b=el(i,s.k);b.classList.remove("spin");void b.offsetWidth;b.classList.add("land");
+        list.splice(x,1);
+      }else{
+        show(i,s.k,candidate(s.k));
+      }
+    }
+    if(list.length)setTimeout(tick,70);else done();
+  };
+  tick();
+}
+
+function rollPlayer(i){
+  if(busy[i]||rolled[i])return;
+  rolled[i]=true;busy[i]=true;
+  decide(i);refresh();
+  animate(i,KINDS,700,320,()=>{busy[i]=false;refresh();});
+}
+
+function lockPlayer(i){
+  if(!rolled[i]||busy[i]||locked[i])return;
+  locked[i]=true;
+  refresh();
+  checkAllLocked();
+}
+
+function spinSlot(i,k){
+  if(busy[i]||!rolled[i]||lk[i][k]||locked[i]||(limited()&&used[i]))return;
+  const p=players[i];
+  if(k==="p"||k==="s") el(i,k).closest(".slot").classList.remove("care-package");
+  let pool;
+  if(k==="legend"){const others=players.filter(o=>o.i!==i&&rolled[o.i]).map(o=>o.legend);pool=LEGENDS.filter(l=>l!==p.legend&&!others.includes(l));}
+  else if(k==="p")pool=POOL1.filter(w=>w[0]!==p.p[0]&&w[0]!==p.s[0]);
+  else if(k==="s")pool=POOL2.filter(w=>w[0]!==p.s[0]&&w[0]!==p.p[0]);
+  else pool=AMPS.filter(a=>a!==p.amp);
+  if(!pool.length)return;
+  p[k]=pick(pool);
+  used[i]=true;lk[i][k]=true;busy[i]=true;
+  locked[i]=true;
+  refresh();
+  animate(i,[k],800,0,()=>{
+    busy[i]=false;
+    const slot=el(i,k).closest(".slot");
+    slot.classList.add("locked");
+    refresh();
+    checkAllLocked();
+  });
+}
+
+function resetRound(){
+  rolled=[false,false,false];used=[false,false,false];locked=[false,false,false];lk=freshLocks();
+  grid.querySelectorAll(".slot.locked").forEach(s=>s.classList.remove("locked"));
+  hideSheet();refresh();
+}
+
+/* Result Sheet Logic */
+function buildSheet(){
+  roundKills=[0,0,0];
+  roundRounds=[0,0,0];
+  roundWinner=null;
+  $("sheetPlayers").innerHTML=players.map(p=>`
+    <div class="p-entry">
+      <div class="pname-sm">${esc(nm(p.i))}</div>
+      <div class="stat-group">
+        <div class="ctrl-row">
+          <span class="ctrl-label">Kills (+1)</span>
+          <div class="ctrl-actions">
+            <button class="kill-btn" onclick="changeKills(${p.i},-1)">&minus;</button>
+            <span class="kill-val" id="kval-${p.i}">0</span>
+            <button class="kill-btn" onclick="changeKills(${p.i},1)">&plus;</button>
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <span class="ctrl-label">Rounds (+2)</span>
+          <div class="ctrl-actions">
+            <button class="kill-btn" onclick="changeRounds(${p.i},-1)">&minus;</button>
+            <span class="kill-val" id="rval-${p.i}">0</span>
+            <button class="kill-btn" onclick="changeRounds(${p.i},1)">&plus;</button>
+          </div>
+        </div>
+      </div>
+      <div class="match-pts-tag" id="ptsval-${p.i}">0 Match Pts</div>
+      <button class="win-toggle" id="wtog-${p.i}" onclick="setWinner(${p.i})">Winner (+1 Score)</button>
+    </div>
+  `).join("");
+}
+
+function updatePts(i){
+  const pts = roundKills[i]*1 + roundRounds[i]*2;
+  const tag = $(`ptsval-${i}`);
+  if(tag) tag.textContent = `${pts} Match Pt${pts===1?'':'s'}`;
+}
+
+window.changeKills=(i, delta)=>{
+  roundKills[i]=Math.max(0, roundKills[i]+delta);
+  $(`kval-${i}`).textContent=roundKills[i];
+  updatePts(i);
+};
+
+window.changeRounds=(i, delta)=>{
+  roundRounds[i]=Math.max(0, roundRounds[i]+delta);
+  $(`rval-${i}`).textContent=roundRounds[i];
+  updatePts(i);
+};
+
+window.setWinner=(i)=>{
+  if(roundWinner===i){
+    roundWinner=null;
+  }else{
+    roundWinner=i;
+  }
+  players.forEach(p=>{
+    const btn=$(`wtog-${p.i}`);
+    if(btn)btn.classList.toggle("active", roundWinner===p.i);
+  });
+};
+
+function showSheet(){
+  pending=true;
+  buildSheet();
+  $("sheet").hidden=false;
+}
+function hideSheet(){
+  pending=false;
+  $("sheet").hidden=true;
+}
+
+$("openSheet").onclick=showSheet;
+$("skip").onclick=hideSheet;
+$("confirmRound").onclick=()=>{
+  const killsMap={};
+  const roundsMap={};
+  players.forEach(p=>{ 
+    killsMap[nm(p.i)]=roundKills[p.i];
+    roundsMap[nm(p.i)]=roundRounds[p.i];
+  });
+  const winnerName=roundWinner!==null ? nm(roundWinner) : null;
+  
+  store.history.push({
+    winner: winnerName,
+    kills: killsMap,
+    rounds: roundsMap
+  });
+  save();
+  resetRound();
+  renderBoard();
+};
+
+/* Scoreboard Calculation */
+function renderBoard(){
+  const stats={};
+  const names=new Set([...store.roster, ...Object.keys(store.names||{}).map(k=>store.names[k])]);
+  players.forEach(p=>names.add(nm(p.i)));
+
+  names.forEach(n=>{ if(n) stats[n]={kills:0, rounds:0, score:0}; });
+
+  (store.history||[]).forEach(r=>{
+    if(r.winner && stats[r.winner]){
+      stats[r.winner].score += 1;
+    }
+    if(r.kills){
+      Object.entries(r.kills).forEach(([n,k])=>{
+        if(!stats[n]) stats[n]={kills:0, rounds:0, score:0};
+        stats[n].kills += (k||0);
+      });
+    }
+    if(r.rounds){
+      Object.entries(r.rounds).forEach(([n,rnd])=>{
+        if(!stats[n]) stats[n]={kills:0, rounds:0, score:0};
+        stats[n].rounds += (rnd||0);
+      });
+    }
+  });
+
+  const arr=Object.keys(stats).map(n=>{
+    const k=stats[n].kills;
+    const rnd=stats[n].rounds;
+    const score=stats[n].score;
+    return {n, k, rnd, score};
+  }).sort((a,b)=>b.score-a.score || b.rnd-a.rnd || b.k-a.k);
+
+  const top=arr[0]&&arr[0].score>0?arr[0].n:null;
+
+  $("rows").innerHTML=arr.map(r=>{
+    const isLead=r.n===top;
+    let cls="row";
+    if(isLead) cls+=" lead";
+
+    return `
+      <div class="${cls}">
+        <span class="n">${esc(r.n)}${isLead?' &#128081;':''}</span>
+        <span class="stat">${r.k}</span>
+        <span class="stat">${r.rnd}</span>
+        <span class="pts">${r.score}</span>
+      </div>
+    `;
+  }).join("");
+
+  $("undo").disabled=!(store.history&&store.history.length);
+}
+
+$("undo").onclick=()=>{
+  if(!store.history || !store.history.length) return;
+  store.history.pop();
+  save();
+  renderBoard();
+};
+
+let armed=false,armT;
+$("reset").onclick=()=>{
+  if(!armed){
+    armed=true;
+    $("reset").textContent="Tap again to wipe";
+    armT=setTimeout(()=>{armed=false;$("reset").textContent="Reset";},3000);
+    return;
+  }
+  clearTimeout(armT);
+  armed=false;
+  $("reset").textContent="Reset";
+  store.history=[];
+  save();
+  renderBoard();
+};
+
+build();
+renderBoard();
+refresh();
+</script>
+</body>
+</html>
