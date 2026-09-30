@@ -917,24 +917,35 @@ function buildSheet(){
         <div class="ctrl-row">
           <span class="ctrl-label">Kills (+1)</span>
           <div class="ctrl-actions">
-            <button class="kill-btn" onclick="changeKills(${p.i},-1)">&minus;</button>
+            <button class="kill-btn" data-act="kill" data-i="${p.i}" data-d="-1">&minus;</button>
             <span class="kill-val" id="kval-${p.i}">0</span>
-            <button class="kill-btn" onclick="changeKills(${p.i},1)">&plus;</button>
+            <button class="kill-btn" data-act="kill" data-i="${p.i}" data-d="1">&plus;</button>
           </div>
         </div>
         <div class="ctrl-row">
           <span class="ctrl-label">Rounds (+2)</span>
           <div class="ctrl-actions">
-            <button class="kill-btn" onclick="changeRounds(${p.i},-1)">&minus;</button>
+            <button class="kill-btn" data-act="round" data-i="${p.i}" data-d="-1">&minus;</button>
             <span class="kill-val" id="rval-${p.i}">0</span>
-            <button class="kill-btn" onclick="changeRounds(${p.i},1)">&plus;</button>
+            <button class="kill-btn" data-act="round" data-i="${p.i}" data-d="1">&plus;</button>
           </div>
         </div>
       </div>
       <div class="match-pts-tag" id="ptsval-${p.i}">0 Match Pts</div>
-      <button class="win-toggle" id="wtog-${p.i}" onclick="setWinner(${p.i})">Winner (+1 Score)</button>
+      <button class="win-toggle" id="wtog-${p.i}" data-act="winner" data-i="${p.i}">Winner (+1 Score)</button>
     </div>
   `).join("");
+
+  $("sheetPlayers").querySelectorAll("[data-act]").forEach(btn=>{
+    btn.onclick=()=>{
+      const act=btn.dataset.act;
+      const i=+btn.dataset.i;
+      const d=+btn.dataset.d;
+      if(act==="kill") changeKills(i,d);
+      else if(act==="round") changeRounds(i,d);
+      else if(act==="winner") setWinner(i);
+    };
+  });
 }
 
 function updatePts(i){
@@ -943,19 +954,21 @@ function updatePts(i){
   if(tag) tag.textContent = `${pts} Match Pt${pts===1?'':'s'}`;
 }
 
-window.changeKills=(i, delta)=>{
+function changeKills(i, delta){
   roundKills[i]=Math.max(0, roundKills[i]+delta);
-  $(`kval-${i}`).textContent=roundKills[i];
+  const el=$(`kval-${i}`);
+  if(el) el.textContent=roundKills[i];
   updatePts(i);
-};
+}
 
-window.changeRounds=(i, delta)=>{
+function changeRounds(i, delta){
   roundRounds[i]=Math.max(0, roundRounds[i]+delta);
-  $(`rval-${i}`).textContent=roundRounds[i];
+  const el=$(`rval-${i}`);
+  if(el) el.textContent=roundRounds[i];
   updatePts(i);
-};
+}
 
-window.setWinner=(i)=>{
+function setWinner(i){
   if(roundWinner===i){
     roundWinner=null;
   }else{
@@ -965,7 +978,7 @@ window.setWinner=(i)=>{
     const btn=$(`wtog-${p.i}`);
     if(btn)btn.classList.toggle("active", roundWinner===p.i);
   });
-};
+}
 
 function showSheet(){
   pending=true;
