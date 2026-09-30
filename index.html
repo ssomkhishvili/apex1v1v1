@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Apex 1v1v1 Roller - Discord Activity</title>
+<!-- Firebase App (Compat) & Realtime Database -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
 <style>
 :root{
   --bg: #1e1f22;              /* Discord tertiary background */
@@ -585,34 +589,18 @@ h2::before {
   font-size: 12px;
 }
 
-/* Responsive Fallbacks */
 @media (max-width: 1280px){
-  html, body {
-    overflow: auto;
-    height: auto;
-  }
-  .app-container {
-    height: auto;
-    min-height: 100vh;
-  }
-  .app-layout {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto;
-  }
-  .left-spacer {
-    display: none;
-  }
-  .board {
-    max-width: 100%;
-    height: 480px;
-  }
+  html, body { overflow: auto; height: auto; }
+  .app-container { height: auto; min-height: 100vh; }
+  .app-layout { grid-template-columns: 1fr; grid-template-rows: auto auto; }
+  .left-spacer { display: none; }
+  .board { max-width: 100%; height: 480px; }
 }
 @media (max-width:680px){
   .grid{grid-template-columns:1fr}
   .sheet-players{grid-template-columns:1fr}
 }
 
-/* Background Atmosphere */
 body{background:#1e1f22}
 .bg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;background:radial-gradient(circle at 50% 10%, rgba(88, 101, 242, 0.08), transparent 50%)}
 .app-container{position:relative;z-index:1}
@@ -679,6 +667,21 @@ body{background:#1e1f22}
 </div>
 
 <script>
+// --- FIREBASE CONFIGURATION ---
+const firebaseConfig = {
+  apiKey: "AIzaSyA8Vj8XDdtBIGVo9sFQYOYrsenAAf9gOOg",
+  authDomain: "v1v1-ceda7.firebaseapp.com",
+  databaseURL: "https://v1v1-ceda7-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "v1v1-ceda7",
+  storageBucket: "v1v1-ceda7.firebasestorage.app",
+  messagingSenderId: "611760550535",
+  appId: "1:611760550535:web:8c236a3f4e2e880069be22",
+  measurementId: "G-HJQ0QEKG35"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database().ref("game_state");
+
 const LEGENDS=["Alter","Ash","Axle","Ballistic","Bangalore","Bloodhound","Catalyst","Caustic","Conduit","Crypto","Fuse","Gibraltar","Horizon","Lifeline","Loba","Mad Maggie","Mirage","Newcastle","Octane","Pathfinder","Rampart","Revenant","Seer","Sparrow","Valkyrie","Vantage","Wattson","Wraith"];
 const WEAPONS=[
 ["HAVOC Rifle","AR","Energy"],["VK-47 Flatline","AR","Heavy"],["Hemlok","AR","Heavy"],["R-301 Carbine","AR","Light"],["Nemesis","AR","Energy"],
@@ -702,44 +705,67 @@ const pick=a=>a[Math.floor(Math.random()*a.length)];
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const $=id=>document.getElementById(id);
 const grid=$("grid");
-const KEY="apexRoller.v4";
 
-let store={history:[],names:null,roster:null};
-try{const raw=localStorage.getItem(KEY);if(raw){const o=JSON.parse(raw);if(o&&typeof o==="object")store=Object.assign(store,o);}}catch(e){}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(store));}catch(e){}}
+let state = {
+  history: [],
+  names: PRESET.slice(),
+  roster: NAMES.slice(),
+  limit: true,
+  rolled: [false, false, false],
+  used: [false, false, false],
+  locked: [false, false, false],
+  lk: [0,1,2].map(()=>({legend:false,p:false,s:false,amp:false})),
+  players: [0,1,2].map(i=>({i, name: PRESET[i], legend:null, p:null, s:null, amp:null}))
+};
 
-if(!Array.isArray(store.roster))store.roster=NAMES.slice();
-const players=[0,1,2].map(i=>({i,name:(store.names&&store.names[i])||PRESET[i]||"Player "+(i+1),legend:null,p:null,s:null,amp:null}));
-const nm=i=>(players[i].name||"").trim()||"Player "+(i+1);
+function pushState(){
+  db.set(state);
+}
+
+// Listen to Firebase updates in real-time across all users
+db.on('value', (snapshot) => {
+  const data = snapshot.val();
+  if(data){
+    state = data;
+    if(!state.lk) state.lk = [0,1,2].map(()=>({legend:false,p:false,s:false,amp:false}));
+    renderAll();
+  } else {
+    pushState();
+  }
+});
+
+const nm=i=>(state.players[i].name||"").trim()||"Player "+(i+1);
 const KINDS=["legend","p","s","amp"];
-let pending=false;
 const busy=[false,false,false];
-let rolled=[false,false,false], used=[false,false,false], locked=[false,false,false];
-const freshLocks=()=>[0,1,2].map(()=>({legend:false,p:false,s:false,amp:false}));
-let lk=freshLocks();
 
 let roundKills=[0,0,0];
 let roundRounds=[0,0,0];
 let roundWinner=null;
 
 function html(k,v){
+  if(!v) return `<div class="val">&mdash;</div>`;
   if(k==="legend"||k==="amp")return `<div class="val">${v}</div>`;
   const meta = v[1] === v[2] ? v[1] : `${v[1]} &middot; ${v[2]}`;
   return `<div class="val">${v[0]}</div><div class="meta">${meta}</div>`;
 }
+
 const el=(i,k)=>grid.querySelector(`.body[data-i="${i}"][data-k="${k}"]`);
-function show(i,k,v,final=false){
+
+function show(i,k,v){
   const body=el(i,k);
-  body.innerHTML=html(k,v);
-  if(final && (k==="p"||k==="s")){
-    const slot=body.closest(".slot");
-    slot.classList.toggle("care-package", !!v?.[3]);
+  if(body) {
+    body.innerHTML=html(k,v);
+    if(k==="p"||k==="s"){
+      const slot=body.closest(".slot");
+      slot.classList.toggle("care-package", !!v?.[3]);
+    }
   }
 }
 
 const L=(t,k,i)=>`<div class="lblrow"><span class="lbl">${t}</span></div><button class="rr" data-i="${i}" data-k="${k}" title="Reroll" aria-label="Reroll">&#8635;</button>`;
+
 function build(){
-  grid.innerHTML=players.map(p=>`
+  grid.innerHTML=state.players.map(p=>`
   <div class="col">
     <div class="pname">${esc(p.name)}</div>
     <button class="rollp" data-p="${p.i}">Roll Loadout</button>
@@ -749,160 +775,141 @@ function build(){
     <div class="slot">${L("Amp","amp",p.i)}<div class="body" data-i="${p.i}" data-k="amp"></div></div>
     <button class="lockp" data-lock="${p.i}">Lock In</button>
   </div>`).join("");
+
   grid.querySelectorAll(".rr").forEach(b=>b.onclick=()=>spinSlot(+b.dataset.i,b.dataset.k));
   grid.querySelectorAll(".rollp").forEach(b=>b.onclick=()=>rollPlayer(+b.dataset.p));
   grid.querySelectorAll(".lockp").forEach(b=>b.onclick=()=>lockPlayer(+b.dataset.lock));
-  players.forEach(p=>KINDS.forEach(k=>{el(p.i,k).innerHTML='<div class="val">&mdash;</div>';}));
+}
+
+function renderAll(){
+  build();
+  state.players.forEach(p=>KINDS.forEach(k=>show(p.i,k,p[k])));
+  $("limit").checked = state.limit !== false;
+  refresh();
+  renderBoard();
+  if(!$("picker").hidden&&!editing)renderSeats();
 }
 
 function setName(i,v){
-  players[i].name=v;
-  const header=grid.querySelectorAll(".pname")[i];
-  if(header)header.textContent=v;
-}
-function namesChanged(){
-  store.names=players.map(p=>p.name);
-  save();
-  build();
-  renderBoard();
-  if(!$("picker").hidden&&!editing)renderSeats();
+  state.players[i].name=v;
+  state.names[i]=v;
+  pushState();
 }
 
 let editing=false;
 function renderSeats(){
   const box=$("seats");
   if(editing){
-    box.innerHTML=`<div class="chips">${store.roster.map(n=>`<button class="chip del" data-d="${esc(n)}">${esc(n)} &times;</button>`).join("")}</div>`;
-    box.querySelectorAll("button").forEach(b=>b.onclick=()=>{store.roster=store.roster.filter(x=>x!==b.dataset.d);save();renderSeats();renderBoard();});
+    box.innerHTML=`<div class="chips">${state.roster.map(n=>`<button class="chip del" data-d="${esc(n)}">${esc(n)} &times;</button>`).join("")}</div>`;
+    box.querySelectorAll("button").forEach(b=>b.onclick=()=>{state.roster=state.roster.filter(x=>x!==b.dataset.d);pushState();});
   }else{
-    box.innerHTML=players.map(p=>`<div class="seat"><div class="lbl">Player ${p.i+1}</div><div class="chips">${store.roster.map(n=>`<button class="chip${p.name===n?" on":""}${players.some(o=>o.i!==p.i&&o.name===n)?" used":""}" data-i="${p.i}" data-n="${esc(n)}">${esc(n)}</button>`).join("")}</div></div>`).join("");
+    box.innerHTML=state.players.map(p=>`<div class="seat"><div class="lbl">Player ${p.i+1}</div><div class="chips">${state.roster.map(n=>`<button class="chip${p.name===n?" on":""}${state.players.some(o=>o.i!==p.i&&o.name===n)?" used":""}" data-i="${p.i}" data-n="${esc(n)}">${esc(n)}</button>`).join("")}</div></div>`).join("");
     box.querySelectorAll("button").forEach(b=>b.onclick=()=>assign(+b.dataset.i,b.dataset.n));
   }
   $("editList").textContent=editing?"Back":"Remove names";
 }
+
 function assign(i,n){
-  const j=players.findIndex(o=>o.i!==i&&o.name===n);
-  if(j>=0)setName(j,players[i].name);
-  setName(i,n);namesChanged();
+  const j=state.players.findIndex(o=>o.i!==i&&o.name===n);
+  if(j>=0) state.players[j].name = state.players[i].name;
+  state.players[i].name = n;
+  state.names = state.players.map(p=>p.name);
+  pushState();
 }
+
 $("pick").onclick=()=>{const h=$("picker").hidden;$("picker").hidden=!h;if(h){editing=false;renderSeats();}};
 $("closePick").onclick=()=>{$("picker").hidden=true;};
 $("editList").onclick=()=>{editing=!editing;renderSeats();};
 $("addName").onclick=addName;
 $("newName").onkeydown=e=>{if(e.key==="Enter")addName();};
+
 function addName(){
   const v=$("newName").value.trim();
   if(!v)return;
-  if(!store.roster.some(n=>n.toLowerCase()===v.toLowerCase()))store.roster.push(v);
-  $("newName").value="";save();renderSeats();renderBoard();
+  if(!state.roster.some(n=>n.toLowerCase()===v.toLowerCase()))state.roster.push(v);
+  $("newName").value="";pushState();
 }
-$("preset").onclick=()=>{PRESET.forEach((n,i)=>setName(i,n));namesChanged();};
+$("preset").onclick=()=>{PRESET.forEach((n,i)=>state.players[i].name=n);state.names=PRESET.slice();pushState();};
 
 function decide(i){
-  const p=players[i];
-  const taken=players.filter(o=>o.i!==i&&rolled[o.i]).map(o=>o.legend);
+  const p=state.players[i];
+  const taken=state.players.filter(o=>o.i!==i&&state.rolled[o.i]).map(o=>o.legend);
   p.legend=pick(LEGENDS.filter(l=>!taken.includes(l)));
   p.p=pick(POOL1);
   p.s=pick(POOL2.filter(w=>w[0]!==p.p[0]));
   p.amp=pick(AMPS);
 }
-function candidate(k){
-  return k==="legend"?pick(LEGENDS):k==="p"?pick(POOL1):k==="s"?pick(POOL2):pick(AMPS);
-}
-const limited=()=>$("limit").checked;
-$("limit").checked=store.limit!==false;
-$("limit").onchange=()=>{store.limit=$("limit").checked;save();refresh();};
 
-function checkAllLocked(){
-  if(rolled.every(Boolean) && locked.every(Boolean) && !busy.some(Boolean)){
-    setTimeout(()=>{if(!pending && locked.every(Boolean)) showSheet();}, 500);
-  }
-}
+$("limit").onchange=()=>{state.limit=$("limit").checked;pushState();};
 
 function refresh(){
-  players.forEach(p=>{
+  state.players.forEach(p=>{
     const i=p.i;
     const rb=grid.querySelector(`.rollp[data-p="${i}"]`);
-    rb.disabled=rolled[i]||busy[i];
-    rb.textContent=rolled[i]?"Rolled":"Roll Loadout";
+    if(rb){
+      rb.disabled=state.rolled[i]||busy[i];
+      rb.textContent=state.rolled[i]?"Rolled":"Roll Loadout";
+    }
 
     const lb=grid.querySelector(`.lockp[data-lock="${i}"]`);
-    lb.disabled=!rolled[i]||busy[i]||locked[i];
-    lb.textContent=locked[i]?"Locked In":"Lock In";
-    lb.classList.toggle("locked-btn", locked[i]);
+    if(lb){
+      lb.disabled=!state.rolled[i]||busy[i]||state.locked[i];
+      lb.textContent=state.locked[i]?"Locked In":"Lock In";
+      lb.classList.toggle("locked-btn", state.locked[i]);
+    }
 
     grid.querySelectorAll(`.rr[data-i="${i}"]`).forEach(b=>{
       const k=b.dataset.k;
       b.innerHTML="&#8635;";
-      b.disabled=busy[i]||!rolled[i]||lk[i][k]||locked[i]||(limited()&&used[i]);
+      b.disabled=busy[i]||!state.rolled[i]||(state.lk[i]&&state.lk[i][k])||state.locked[i]||(state.limit&&state.used[i]);
     });
-    grid.children[i].classList.toggle("stale",!rolled[i]);
-    grid.children[i].classList.toggle("locked-in",locked[i]);
+
+    if(grid.children[i]){
+      grid.children[i].classList.toggle("stale",!state.rolled[i]);
+      grid.children[i].classList.toggle("locked-in",state.locked[i]);
+    }
   });
 }
 
-function animate(i,keys,base,gap,done){
-  const start=performance.now();
-  const list=keys.map((k,j)=>({k,stop:start+base+j*gap}));
-  list.forEach(s=>{const b=el(i,s.k);b.classList.remove("land");b.classList.add("spin");});
-  const tick=()=>{
-    const now=performance.now();
-    for(let x=list.length-1;x>=0;x--){
-      const s=list[x];
-      if(now>=s.stop){
-        show(i,s.k,players[i][s.k],true);
-        const b=el(i,s.k);b.classList.remove("spin");void b.offsetWidth;b.classList.add("land");
-        list.splice(x,1);
-      }else{
-        show(i,s.k,candidate(s.k));
-      }
-    }
-    if(list.length)setTimeout(tick,70);else done();
-  };
-  tick();
-}
-
 function rollPlayer(i){
-  if(busy[i]||rolled[i])return;
-  rolled[i]=true;busy[i]=true;
-  decide(i);refresh();
-  animate(i,KINDS,700,320,()=>{busy[i]=false;refresh();});
+  if(busy[i]||state.rolled[i])return;
+  state.rolled[i]=true;
+  decide(i);
+  pushState();
 }
 
 function lockPlayer(i){
-  if(!rolled[i]||busy[i]||locked[i])return;
-  locked[i]=true;
-  refresh();
-  checkAllLocked();
+  if(!state.rolled[i]||busy[i]||state.locked[i])return;
+  state.locked[i]=true;
+  pushState();
 }
 
 function spinSlot(i,k){
-  if(busy[i]||!rolled[i]||lk[i][k]||locked[i]||(limited()&&used[i]))return;
-  const p=players[i];
-  if(k==="p"||k==="s") el(i,k).closest(".slot").classList.remove("care-package");
+  if(busy[i]||!state.rolled[i]||(state.lk[i]&&state.lk[i][k])||state.locked[i]||(state.limit&&state.used[i]))return;
+  const p=state.players[i];
   let pool;
-  if(k==="legend"){const others=players.filter(o=>o.i!==i&&rolled[o.i]).map(o=>o.legend);pool=LEGENDS.filter(l=>l!==p.legend&&!others.includes(l));}
+  if(k==="legend"){const others=state.players.filter(o=>o.i!==i&&state.rolled[o.i]).map(o=>o.legend);pool=LEGENDS.filter(l=>l!==p.legend&&!others.includes(l));}
   else if(k==="p")pool=POOL1.filter(w=>w[0]!==p.p[0]&&w[0]!==p.s[0]);
   else if(k==="s")pool=POOL2.filter(w=>w[0]!==p.s[0]&&w[0]!==p.p[0]);
   else pool=AMPS.filter(a=>a!==p.amp);
   if(!pool.length)return;
+
   p[k]=pick(pool);
-  used[i]=true;lk[i][k]=true;busy[i]=true;
-  locked[i]=true;
-  refresh();
-  animate(i,[k],800,0,()=>{
-    busy[i]=false;
-    const slot=el(i,k).closest(".slot");
-    slot.classList.add("locked");
-    refresh();
-    checkAllLocked();
-  });
+  state.used[i]=true;
+  if(!state.lk[i]) state.lk[i]={};
+  state.lk[i][k]=true;
+  state.locked[i]=true;
+  pushState();
 }
 
 function resetRound(){
-  rolled=[false,false,false];used=[false,false,false];locked=[false,false,false];lk=freshLocks();
-  grid.querySelectorAll(".slot.locked").forEach(s=>s.classList.remove("locked"));
-  hideSheet();refresh();
+  state.rolled=[false,false,false];
+  state.used=[false,false,false];
+  state.locked=[false,false,false];
+  state.lk=[0,1,2].map(()=>({legend:false,p:false,s:false,amp:false}));
+  state.players.forEach(p=>{p.legend=null;p.p=null;p.s=null;p.amp=null;});
+  hideSheet();
+  pushState();
 }
 
 /* Result Sheet Logic */
@@ -910,7 +917,7 @@ function buildSheet(){
   roundKills=[0,0,0];
   roundRounds=[0,0,0];
   roundWinner=null;
-  $("sheetPlayers").innerHTML=players.map(p=>`
+  $("sheetPlayers").innerHTML=state.players.map(p=>`
     <div class="p-entry">
       <div class="pname-sm">${esc(nm(p.i))}</div>
       <div class="stat-group">
@@ -969,24 +976,18 @@ function changeRounds(i, delta){
 }
 
 function setWinner(i){
-  if(roundWinner===i){
-    roundWinner=null;
-  }else{
-    roundWinner=i;
-  }
-  players.forEach(p=>{
+  roundWinner = (roundWinner === i) ? null : i;
+  state.players.forEach(p=>{
     const btn=$(`wtog-${p.i}`);
     if(btn)btn.classList.toggle("active", roundWinner===p.i);
   });
 }
 
 function showSheet(){
-  pending=true;
   buildSheet();
   $("sheet").hidden=false;
 }
 function hideSheet(){
-  pending=false;
   $("sheet").hidden=true;
 }
 
@@ -995,31 +996,26 @@ $("skip").onclick=hideSheet;
 $("confirmRound").onclick=()=>{
   const killsMap={};
   const roundsMap={};
-  players.forEach(p=>{ 
+  state.players.forEach(p=>{ 
     killsMap[nm(p.i)]=roundKills[p.i];
     roundsMap[nm(p.i)]=roundRounds[p.i];
   });
   const winnerName=roundWinner!==null ? nm(roundWinner) : null;
   
-  store.history.push({
-    winner: winnerName,
-    kills: killsMap,
-    rounds: roundsMap
-  });
-  save();
+  if(!state.history) state.history = [];
+  state.history.push({ winner: winnerName, kills: killsMap, rounds: roundsMap });
   resetRound();
-  renderBoard();
 };
 
 /* Scoreboard Calculation */
 function renderBoard(){
   const stats={};
-  const names=new Set([...store.roster, ...Object.keys(store.names||{}).map(k=>store.names[k])]);
-  players.forEach(p=>names.add(nm(p.i)));
+  const names=new Set([...(state.roster||[]), ...Object.keys(state.names||{}).map(k=>state.names[k])]);
+  state.players.forEach(p=>names.add(nm(p.i)));
 
   names.forEach(n=>{ if(n) stats[n]={kills:0, rounds:0, score:0}; });
 
-  (store.history||[]).forEach(r=>{
+  (state.history||[]).forEach(r=>{
     if(r.winner && stats[r.winner]){
       stats[r.winner].score += 1;
     }
@@ -1061,14 +1057,13 @@ function renderBoard(){
     `;
   }).join("");
 
-  $("undo").disabled=!(store.history&&store.history.length);
+  $("undo").disabled=!(state.history&&state.history.length);
 }
 
 $("undo").onclick=()=>{
-  if(!store.history || !store.history.length) return;
-  store.history.pop();
-  save();
-  renderBoard();
+  if(!state.history || !state.history.length) return;
+  state.history.pop();
+  pushState();
 };
 
 let armed=false,armT;
@@ -1082,14 +1077,9 @@ $("reset").onclick=()=>{
   clearTimeout(armT);
   armed=false;
   $("reset").textContent="Reset";
-  store.history=[];
-  save();
-  renderBoard();
+  state.history=[];
+  pushState();
 };
-
-build();
-renderBoard();
-refresh();
 </script>
 </body>
 </html>
