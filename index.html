@@ -719,22 +719,10 @@ let state = {
 };
 
 function pushState(){
-  db.set(state);
+  try { db.set(state); } catch(e){ console.error(e); }
 }
 
-// Listen to Firebase updates in real-time across all users
-db.on('value', (snapshot) => {
-  const data = snapshot.val();
-  if(data){
-    state = data;
-    if(!state.lk) state.lk = [0,1,2].map(()=>({legend:false,p:false,s:false,amp:false}));
-    renderAll();
-  } else {
-    pushState();
-  }
-});
-
-const nm=i=>(state.players[i].name||"").trim()||"Player "+(i+1);
+const nm=i=>(state.players?.[i]?.name||"").trim()||"Player "+(i+1);
 const KINDS=["legend","p","s","amp"];
 const busy=[false,false,false];
 
@@ -757,7 +745,7 @@ function show(i,k,v){
     body.innerHTML=html(k,v);
     if(k==="p"||k==="s"){
       const slot=body.closest(".slot");
-      slot.classList.toggle("care-package", !!v?.[3]);
+      if(slot) slot.classList.toggle("care-package", !!v?.[3]);
     }
   }
 }
@@ -765,6 +753,7 @@ function show(i,k,v){
 const L=(t,k,i)=>`<div class="lblrow"><span class="lbl">${t}</span></div><button class="rr" data-i="${i}" data-k="${k}" title="Reroll" aria-label="Reroll">&#8635;</button>`;
 
 function build(){
+  if(!grid) return;
   grid.innerHTML=state.players.map(p=>`
   <div class="col">
     <div class="pname">${esc(p.name)}</div>
@@ -789,6 +778,23 @@ function renderAll(){
   renderBoard();
   if(!$("picker").hidden&&!editing)renderSeats();
 }
+
+// Initial draw immediately on page load
+renderAll();
+
+// Listen to Firebase updates in real-time
+db.on('value', (snapshot) => {
+  const data = snapshot.val();
+  if(data && data.players && data.players.length === 3){
+    state = data;
+    if(!state.lk) state.lk = [0,1,2].map(()=>({legend:false,p:false,s:false,amp:false}));
+    renderAll();
+  } else {
+    pushState();
+  }
+}, (err) => {
+  console.warn("Firebase Read Error:", err);
+});
 
 function setName(i,v){
   state.players[i].name=v;
@@ -875,12 +881,14 @@ function rollPlayer(i){
   if(busy[i]||state.rolled[i])return;
   state.rolled[i]=true;
   decide(i);
+  renderAll();
   pushState();
 }
 
 function lockPlayer(i){
   if(!state.rolled[i]||busy[i]||state.locked[i])return;
   state.locked[i]=true;
+  renderAll();
   pushState();
 }
 
@@ -899,6 +907,7 @@ function spinSlot(i,k){
   if(!state.lk[i]) state.lk[i]={};
   state.lk[i][k]=true;
   state.locked[i]=true;
+  renderAll();
   pushState();
 }
 
@@ -909,6 +918,7 @@ function resetRound(){
   state.lk=[0,1,2].map(()=>({legend:false,p:false,s:false,amp:false}));
   state.players.forEach(p=>{p.legend=null;p.p=null;p.s=null;p.amp=null;});
   hideSheet();
+  renderAll();
   pushState();
 }
 
@@ -1063,6 +1073,7 @@ function renderBoard(){
 $("undo").onclick=()=>{
   if(!state.history || !state.history.length) return;
   state.history.pop();
+  renderAll();
   pushState();
 };
 
@@ -1078,6 +1089,7 @@ $("reset").onclick=()=>{
   armed=false;
   $("reset").textContent="Reset";
   state.history=[];
+  renderAll();
   pushState();
 };
 </script>
